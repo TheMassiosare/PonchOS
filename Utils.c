@@ -1,6 +1,8 @@
 #include "System.h"
 #include <stdarg.h>
 
+#define TAB_SPACE 4
+
 struct coordinates
 {
     unsigned short x, y;
@@ -14,40 +16,70 @@ void printv(char* str, ...)
     cursor_position.x = (unsigned short)(tmp_cursor >> 16);
     cursor_position.y = (unsigned short)tmp_cursor;
     char buffer[12];
+    memset(buffer, '\0', 12);
 
     va_list list_ptr;
     va_start(list_ptr, str);
     
     unsigned int i = 0;
     for(char* ptr = str; *ptr != '\0'; ptr++)
-    {
-        
-        if(*ptr == '%')
+    {    
+        switch (*ptr)
         {
-            cursor_position.x += i%80;
-            cursor_position.y += i/80;
+        case '%':
+            cursor_position.y += (cursor_position.x+i)/80;
+            cursor_position.x = (cursor_position.x+i)%80;            
             update_cursor(cursor_position.x, cursor_position.y);
             i = 0;
             switch (*(ptr+1))
             {
+            case 'c':
+                buffer[0] = (char)va_arg(list_ptr, int);
+                buffer[1] = '\0';
+                printv(buffer);
+                ptr++;
+                continue;
+            case 's':
+                printv(va_arg(list_ptr, char*));
+                ptr++;
+                continue;
+            //Tiene un comportamiento extraño cada que hay menos de 7 caracteres
+            //antes del %   
             case 'i':
             case 'd':                
                 int_to_str(va_arg(list_ptr, int), buffer, 10);                
                 printv(buffer);
                 ptr++;
                 continue;         
-            default:            
+            default:     
+                *(char*)(0xb8000+(cursor_position.x+i+cursor_position.y*80)*2)  = *ptr;
+                i++;       
                 break;
-            }
-        }      
-        *(char*)(0xb8000+(cursor_position.x+i+cursor_position.y*80)*2)  = *ptr;
-        i++;
+            }  
+            break;          
+        case '\n':
+            i = 0;
+            cursor_position.x = 0;
+            cursor_position.y++;
+            break;
+        case '\t':
+            cursor_position.y += (cursor_position.x+i)/80;
+            cursor_position.x = (cursor_position.x+i)%80;                    
+            update_cursor(cursor_position.x, cursor_position.y);
+            i = 0;
+            cursor_position.x += TAB_SPACE-cursor_position.x%TAB_SPACE-1;        
+            break;
+        default:
+            *(char*)(0xb8000+(cursor_position.x+i+cursor_position.y*80)*2)  = *ptr;
+            i++;
+            break;
+        }     
     }
 
     va_end(list_ptr);
 
-    cursor_position.x += i%80;
-    cursor_position.y += i/80;
+    cursor_position.y += (cursor_position.x+i)/80;
+    cursor_position.x = (cursor_position.x+i)%80;  
     update_cursor(cursor_position.x, cursor_position.y);
 }
 
