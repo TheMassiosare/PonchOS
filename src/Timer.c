@@ -1,5 +1,6 @@
 #include "System.h"
 
+//El timer corre constantemente despues de instalarlo, aunque no se le llame
 void timer_phase(int hz)
 {
     int divisor = 1193180/hz;
@@ -10,11 +11,10 @@ void timer_phase(int hz)
 
 int timer_ticks = 0;
 
+//100ticks es equivalente a un segundo
 void timer_handler(struct regs* r)
 {
     timer_ticks++;
-    if(timer_ticks%100 == 0)
-        printv("Paso un segundo\n");
 }
 
 void timer_install()
