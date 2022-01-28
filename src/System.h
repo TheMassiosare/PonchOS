@@ -18,6 +18,7 @@ void irq_install_handler(int irq, void (*handler)(struct regs *r));
 void irq_uninstall_handler(int irq);
 void timer_install();
 void timer_wait(int ticks);
+void keyboard_install();
 void* memset(void* dest, int val, unsigned long len);
 void* memcopy(void* from, void* to, unsigned long size);
 void outportb(unsigned short port, unsigned char val);
