@@ -22,6 +22,7 @@ void keyboard_install();
 void* memset(void* dest, int val, unsigned long len);
 void* memcopy(void* from, void* to, unsigned long size);
 void outportb(unsigned short port, unsigned char val);
+unsigned char inportb(unsigned char port);
 extern void enable_disable_cursor(unsigned char E_D);
 extern void update_cursor(int x, int y);
 

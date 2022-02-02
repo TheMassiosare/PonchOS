@@ -107,6 +107,14 @@ void outportb(unsigned short port, unsigned char val)
     asm("out %al, %dx");
 }
 
+unsigned char inportb(unsigned char port)
+{
+    unsigned char read;
+    asm("mov %0, %%dx"::"r"((unsigned short)port));
+    asm ("inb %%dx, %%al":"=r"(read)::"%dx"); 
+    return read;
+}
+
 char* int_to_str(int n, char* str_out, unsigned char base)
 {
     char* str = str_out;

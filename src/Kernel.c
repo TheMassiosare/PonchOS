@@ -4,7 +4,7 @@ extern void main()
 {
     IDT_install();
     IRQ_install();
-    __asm__ volatile ("sti"); //Permite que haya IRQs 
+    asm volatile ("sti"); //Permite que haya IRQs 
     timer_install();
     keyboard_install();
     enable_disable_cursor(ENABLE_NORMAL_CURSOR);  
