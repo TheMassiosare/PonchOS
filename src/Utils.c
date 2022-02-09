@@ -1,86 +1,78 @@
 #include "System.h"
 #include <stdarg.h>
+#include <stddef.h>
 
 #define TAB_SPACE 4
 
-struct coordinates
-{
-    unsigned short x, y;
-}__attribute__((packed));
+//typedef unsigned int size_t;
+void putstr(const char *str, size_t n) {
+    if (n > 0) {
+        unsigned int tmp_cursor = get_cursor_position();
+        int x = (unsigned short)(tmp_cursor >> 16);
+        int y = (unsigned short)tmp_cursor;
+        size_t i;
+    
+        for (i = 0; i < n; i++) {            
+            switch (str[i]) {
+            case '\n':
+                y += x / 80 + 1;
+                x = 0;
+                break;
+            case '\r':
+                y += x / 80;
+                x = 0;
+                break;
+            case '\t':
+                x = (x + TAB_SPACE) / TAB_SPACE * TAB_SPACE;        
+                y += x / 80;
+                x %= 80;
+                break;
+            default:
+                *(char *)(0xb8000 + (y * 80 + x) * 2) = str[i];
+                x++;
+                break;
+            }
+        }     
+        update_cursor(x, y);
+    }
+}
 
-static struct coordinates cursor_position;
-
-void printv(char* str, ...)
-{
-    unsigned int tmp_cursor = get_cursor_position();
-    cursor_position.x = (unsigned short)(tmp_cursor >> 16);
-    cursor_position.y = (unsigned short)tmp_cursor;
-    char buffer[12];
-    memset(buffer, '\0', 12);
-
+void printv(const char *str, ...) {
+    char buffer[32];
+    char *p;
+    const char *ptr;
     va_list list_ptr;
     va_start(list_ptr, str);
-    
-    unsigned int i = 0;
-    for(char* ptr = str; *ptr != '\0'; ptr++)
-    {    
-        switch (*ptr)
-        {
-        case '%':
-            cursor_position.y += (cursor_position.x+i)/80;
-            cursor_position.x = (cursor_position.x+i)%80;            
-            update_cursor(cursor_position.x, cursor_position.y);
-            i = 0;
-            switch (*(ptr+1))
-            {
+
+    for (ptr = str; *ptr != '\0'; ptr++) {
+        if (*ptr == '%' && ptr[1] != '\0') {
+            putstr(str, ptr - str);
+            str = ptr += 2;
+            switch (ptr[-1]) {
             case 'c':
                 buffer[0] = (char)va_arg(list_ptr, int);
-                buffer[1] = '\0';
-                printv(buffer);
-                ptr++;
-                continue;
+                putstr(buffer, 1);
+                break;
             case 's':
-                printv(va_arg(list_ptr, char*));
-                ptr++;
-                continue;
-            //Tiene un comportamiento extraño cada que hay menos de 7 caracteres
-            //antes del %   
+                p = va_arg(list_ptr, char *);
+                putstr(p, strlen(p));
+                break;
             case 'i':
             case 'd':                
-                int_to_str(va_arg(list_ptr, int), buffer, 10);                
-                printv(buffer);
-                ptr++;
-                continue;         
-            default:     
-                *(char*)(0xb8000+(cursor_position.x+i+cursor_position.y*80)*2)  = *ptr;
-                i++;       
+                int_to_str(va_arg(list_ptr, int), buffer, 10);
+                putstr(buffer, strlen(buffer));
                 break;
-            }  
-            break;          
-        case '\n':
-            i = 0;
-            cursor_position.x = 0;
-            cursor_position.y++;
-            break;
-        case '\t':
-            cursor_position.y += (cursor_position.x+i)/80;
-            cursor_position.x = (cursor_position.x+i)%80;                    
-            update_cursor(cursor_position.x, cursor_position.y);
-            i = 0;
-            cursor_position.x += TAB_SPACE-cursor_position.x%TAB_SPACE-1;        
-            break;
-        default:
-            *(char*)(0xb8000+(cursor_position.x+i+cursor_position.y*80)*2)  = *ptr;
-            i++;
-            break;
+            case '%':
+                str -= 1; // include the second % in the next span
+                break;
+            default:
+                str -= 2; // include format in the next span
+                break;
+            }
         }     
     }
-
+    putstr(str, ptr - str);
     va_end(list_ptr);
-
-    cursor_position.y += (cursor_position.x+i)/80;
-    cursor_position.x = (cursor_position.x+i)%80;  
-    update_cursor(cursor_position.x, cursor_position.y);
 }
 
 void* memset(void* dest, int val, unsigned long len)
@@ -98,6 +90,15 @@ void* memcopy(void* from, void* to, unsigned long size)
         *t_ptr = *f_ptr;
     *t_ptr = 0;
     return to;
+}
+
+unsigned long strlen(char* str)
+{
+    unsigned long len = 0;
+    char* ptr = str;
+    while(*(ptr++))
+        len++;
+    return len;
 }
 
 void outportb(unsigned short port, unsigned char val)

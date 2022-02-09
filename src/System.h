@@ -9,7 +9,7 @@ struct regs
     unsigned int eip, cs, eflags, useresp, ss;           
 };
 
-void printv(char* str, ...);
+void printv(const char* str, ...);
 void IDT_install();
 void idt_set_gate(unsigned char n, unsigned long base, unsigned short selector, unsigned char flags);
 void ISRs_install();
@@ -21,6 +21,7 @@ void timer_wait(int ticks);
 void keyboard_install();
 void* memset(void* dest, int val, unsigned long len);
 void* memcopy(void* from, void* to, unsigned long size);
+unsigned long strlen(char* str);
 void outportb(unsigned short port, unsigned char val);
 unsigned char inportb(unsigned char port);
 extern void enable_disable_cursor(unsigned char E_D);
