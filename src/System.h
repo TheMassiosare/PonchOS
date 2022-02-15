@@ -29,6 +29,6 @@ extern void update_cursor(int x, int y);
 
 //Recorrer 16 bits a la derecha y castear a un unsigned short para x
 //Castear a un unsigned short para y
-extern unsigned int get_cursor_position();
+extern unsigned short get_cursor_position();
 char* int_to_str(int n, char* str_out, unsigned char base);
 char* reverse_str(char* str);

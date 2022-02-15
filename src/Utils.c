@@ -1,18 +1,18 @@
 #include "System.h"
 #include <stdarg.h>
-#include <stddef.h>
 
 #define TAB_SPACE 4
 
-//typedef unsigned int size_t;
+typedef unsigned int size_t;
+//Creditos por putstr y printv a chqrlie en StackOverflow
 void putstr(const char *str, size_t n) {
     if (n > 0) {
-        unsigned int tmp_cursor = get_cursor_position();
-        int x = (unsigned short)(tmp_cursor >> 16);
-        int y = (unsigned short)tmp_cursor;
+        unsigned short tmp_cursor = get_cursor_position();
+        unsigned short x = tmp_cursor%80;
+        unsigned short y = tmp_cursor/80;
         size_t i;
     
-        for (i = 0; i < n; i++) {            
+        for (i = 0; i < n; i++) {
             switch (str[i]) {
             case '\n':
                 y += x / 80 + 1;
@@ -47,26 +47,27 @@ void printv(const char *str, ...) {
     for (ptr = str; *ptr != '\0'; ptr++) {
         if (*ptr == '%' && ptr[1] != '\0') {
             putstr(str, ptr - str);
-            str = ptr += 2;
-            switch (ptr[-1]) {
+            str = ptr;
+            ptr++;
+            switch (*ptr) {
             case 'c':
                 buffer[0] = (char)va_arg(list_ptr, int);
                 putstr(buffer, 1);
+                str += 2; // skip the format
                 break;
             case 's':
                 p = va_arg(list_ptr, char *);
                 putstr(p, strlen(p));
+                str += 2; // skip the format
                 break;
             case 'i':
             case 'd':                
                 int_to_str(va_arg(list_ptr, int), buffer, 10);
                 putstr(buffer, strlen(buffer));
+                str += 2; // skip the format
                 break;
             case '%':
-                str -= 1; // include the second % in the next span
-                break;
-            default:
-                str -= 2; // include format in the next span
+                str += 1; // skip the initial %
                 break;
             }
         }     
@@ -95,7 +96,7 @@ void* memcopy(void* from, void* to, unsigned long size)
 unsigned long strlen(char* str)
 {
     unsigned long len = 0;
-    char* ptr = str;
+    const char* ptr = str;
     while(*(ptr++))
         len++;
     return len;
@@ -157,4 +158,3 @@ char* reverse_str(char* str)
     }
     return str;
 }
-

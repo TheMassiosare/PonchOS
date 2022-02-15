@@ -26,28 +26,27 @@ update_cursor:
     mov ebp, esp 
 
     VGA_Width equ 80
-    
-    ;SetCoords (VGA_WIDTH*y +x):
-    mov ebx, [ebp+8]  ;x
-    mov eax, [ebp+12] ;y
+        
+    mov ebx, dword [ebp+8]  ;x
+    mov eax, dword [ebp+12] ;y
     mov dl, VGA_Width
     mul dl
     add bx, ax
 
-    ;SetOffset:    
-    mov dx, 0x03D4
+    mov dx, 0x3D4
     mov al, 0x0F
     out dx, al
 
-    inc dl
+    inc dx
     mov al, bl
     out dx, al
 
-    dec dl
+	; outb(0x3D4, 0x0E);
+    dec dx
     mov al, 0x0E
     out dx, al
 
-    inc dl
+    inc dx
     mov al, bh
     out dx, al
     
@@ -55,41 +54,27 @@ update_cursor:
     ret
 
 get_cursor_position:
-    push ebp
-    mov ebp, esp
-    sub esp, 0d32
+    push ebp         
+    mov ebp, esp 
 
-    ;pos = 0
-    xor ax, ax
+    xor bx, bx
 
-    ;outb(0x3D4, 0x0F)
     mov dx, 0x3D4
     mov al, 0x0F
     out dx, al
 
-    ;pos |= inb(0x3D5)
-    inc dl
+    inc dx
     in al, dx
-    mov bl, al
-    
-    ;outb(0x3D4, 0x0E)
-    dec dl
+    or bl, al
+
+    dec dx
     mov al, 0x0E
     out dx, al
 
-    ;pos |= ((uint16_t)inb(0x3D5)) << 8;
-    inc dl
-    in al, dx 
+    inc dx
+    in al, dx
     shl ax, 0x8
-    xor bh, bh
     or ax, bx
-    xor edx, edx
-
-;y = pos / VGA_WIDTH; x = pos % VGA_WIDTH;. 
-    mov cx, VGA_Width
-    div cx
-    shl edx, 0d16
-    or eax, edx
 
     leave 
     ret
