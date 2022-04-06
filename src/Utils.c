@@ -3,14 +3,13 @@
 
 #define TAB_SPACE 4
 
-typedef unsigned int size_t;
 //Creditos por putstr y printv a chqrlie en StackOverflow
-void putstr(const char *str, size_t n) {
+void putstr(const char *str, unsigned long n) {
     if (n > 0) {
         unsigned short tmp_cursor = get_cursor_position();
         unsigned short x = tmp_cursor%80;
         unsigned short y = tmp_cursor/80;
-        size_t i;
+        unsigned long i;
     
         for (i = 0; i < n; i++) {
             switch (str[i]) {
@@ -26,6 +25,13 @@ void putstr(const char *str, size_t n) {
                 x = (x + TAB_SPACE) / TAB_SPACE * TAB_SPACE;        
                 y += x / 80;
                 x %= 80;
+                break;
+            case '\b':
+                if(x%80 != 0)
+                {
+                    x--; 
+                    *(char *)(0xb8000 + (y * 80 + x) * 2) = ' ';    
+                }                
                 break;
             default:
                 *(char *)(0xb8000 + (y * 80 + x) * 2) = str[i];
@@ -74,23 +80,6 @@ void printv(const char *str, ...) {
     }
     putstr(str, ptr - str);
     va_end(list_ptr);
-}
-
-void* memset(void* dest, int val, unsigned long len)
-{
-    unsigned char* ptr = dest;
-    while(len--)
-        *ptr++ = val;
-    return dest;
-}
-
-void* memcopy(void* from, void* to, unsigned long size)
-{
-    unsigned char *f_ptr = from, *t_ptr = to;
-    for(;*f_ptr != 0; f_ptr++, t_ptr++)
-        *t_ptr = *f_ptr;
-    *t_ptr = 0;
-    return to;
 }
 
 unsigned long strlen(char* str)

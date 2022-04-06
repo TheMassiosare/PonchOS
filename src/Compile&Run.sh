@@ -8,16 +8,16 @@ i386-elf-gcc -ffreestanding -m32 -g -c "ISRs.c" -o "ISRs_c.o"
 i386-elf-gcc -ffreestanding -m32 -g -c "IRQs.c" -o "IRQs_c.o"
 i386-elf-gcc -ffreestanding -m32 -g -c "Timer.c" -o "Timer.o"
 i386-elf-gcc -ffreestanding -m32 -g -c "Keyboard.c" -o "Keyboard.o"
+i386-elf-gcc -ffreestanding -m32 -g -c "Memory.c" -o "Memory.o"
 
 nasm "Kernel_entry.asm" -f elf -o "Kernel_entry.o"
 nasm "ISRs.asm" -f elf -o "ISRs_asm.o"
 nasm "IRQs.asm" -f elf -o "IRQs_asm.o"
 nasm "Cursor.asm" -f elf -o "Cursor.o"
-
-i386-elf-ld -o "full_kernel.bin" -Ttext 0x1000 "Kernel_entry.o" "Kernel.o" "Utils.o" "IDT.o" "ISRs_c.o" "ISRs_asm.o" "IRQs_c.o" "IRQs_asm.o" "Cursor.o" "Timer.o" "Keyboard.o" --oformat binary 
-
 nasm "Bootloader.asm" -f bin -o "Bootloader.bin"
 nasm "Ceros.asm" -f bin -o "Ceros.bin"
+
+i386-elf-ld -o "full_kernel.bin" -Ttext 0x1000 "Kernel_entry.o" "Kernel.o" "Utils.o" "IDT.o" "ISRs_c.o" "ISRs_asm.o" "IRQs_c.o" "IRQs_asm.o" "Cursor.o" "Timer.o" "Keyboard.o" "Memory.o" --oformat binary 
 
 cat "Bootloader.bin" "full_kernel.bin" > "everything.bin"
 cat "everything.bin" "Ceros.asm" > "OS.bin"

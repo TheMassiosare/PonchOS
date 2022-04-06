@@ -19,16 +19,20 @@ void irq_uninstall_handler(int irq);
 void timer_install();
 void timer_wait(int ticks);
 void keyboard_install();
-void* memset(void* dest, int val, unsigned long len);
-void* memcopy(void* from, void* to, unsigned long size);
 unsigned long strlen(char* str);
 void outportb(unsigned short port, unsigned char val);
 unsigned char inportb(unsigned char port);
 extern void enable_disable_cursor(unsigned char E_D);
 extern void update_cursor(int x, int y);
 
-//Recorrer 16 bits a la derecha y castear a un unsigned short para x
-//Castear a un unsigned short para y
+//x=get_cursor_position()%80, y=get_cursor_position()/80
 extern unsigned short get_cursor_position();
 char* int_to_str(int n, char* str_out, unsigned char base);
 char* reverse_str(char* str);
+void* memset(void* dest, int val, unsigned long len);
+void* memcopy(void* from, void* to, unsigned long size);
+void mem_init();
+void* kmalloc(unsigned long size);
+void kfree(void* ptr);
+void display_mem();
+
