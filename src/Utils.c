@@ -3,6 +3,20 @@
 
 #define TAB_SPACE 4
 
+enum colors FOREGROUND_COLOR = LIGHT_GREY | INTENSITY;
+enum colors BACKGROUND_COLOR = BLUE;
+
+void change_output_color(enum colors f_color, enum colors b_color)
+{
+    FOREGROUND_COLOR = f_color; 
+    BACKGROUND_COLOR = b_color;
+}
+
+static inline unsigned short color_text(unsigned char chr, enum colors f_color, enum colors b_color)
+{
+    return (unsigned short) chr | (unsigned short) (f_color | b_color << 4) << 8;
+}
+
 //Creditos por putstr y printv a chqrlie en StackOverflow
 void putstr(const char *str, unsigned long n) {
     if (n > 0) {
@@ -34,7 +48,7 @@ void putstr(const char *str, unsigned long n) {
                 }                
                 break;
             default:
-                *(char *)(0xb8000 + (y * 80 + x) * 2) = str[i];
+                *(short*)(0xb8000 + (y * 80 + x) * 2) = color_text(str[i], FOREGROUND_COLOR, BACKGROUND_COLOR);
                 x++;
                 break;
             }
@@ -80,6 +94,33 @@ void printv(const char *str, ...) {
     }
     putstr(str, ptr - str);
     va_end(list_ptr);
+}
+
+void color_line(unsigned char line_no, enum colors b_color)
+{
+    for(unsigned char x = 0; x < 80; x++)
+        *(short*)(0xb8000 + (line_no * 80 + x) * 2) = color_text(*(char*)(0xb8000 + (line_no * 80 + x) * 2), FOREGROUND_COLOR, b_color);    
+}
+
+void color_column(unsigned char column_no, enum colors b_color)
+{
+    for(unsigned char y = 0; y < 25; y++)
+        *(short*)(0xb8000 + (y * 80 + column_no) * 2) = color_text(*(char*)(0xb8000 + (y * 80 + column_no) * 2), FOREGROUND_COLOR, b_color);    
+}
+
+void color_rectangle(unsigned char x0, unsigned char x1, unsigned char y0, unsigned y1, enum colors b_color)
+{
+    if(x0 > x1 || y0 > y1) 
+        return;
+    
+    unsigned char start_x = x0;
+    for(; y0 <= y1; y0++)
+    {
+        for(; x0 <= x1; x0++)
+            *(short*)(0xb8000 + (y0 * 80 + x0) * 2) = color_text(*(char*)(0xb8000 + (y0 * 80 + x0) * 2), FOREGROUND_COLOR, b_color);    
+        x0 = start_x;
+    }
+
 }
 
 unsigned long strlen(char* str)

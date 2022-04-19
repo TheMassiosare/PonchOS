@@ -9,6 +9,19 @@ struct regs
     unsigned int eip, cs, eflags, useresp, ss;           
 };
 
+enum colors
+{
+    BLACK = 0,     
+    BLUE = 1,      
+    GREEN = 2,     
+    CYAN = 3,      
+    RED = 4,       
+    MAGENTA = 5,   
+    BROWN = 6,      //BROWN | INTENSITY = YELLOW 
+    LIGHT_GREY = 7,
+    INTENSITY = 8
+};
+
 void printv(const char* str, ...);
 void IDT_install();
 void idt_set_gate(unsigned char n, unsigned long base, unsigned short selector, unsigned char flags);
@@ -24,6 +37,10 @@ void outportb(unsigned short port, unsigned char val);
 unsigned char inportb(unsigned char port);
 extern void enable_disable_cursor(unsigned char E_D);
 extern void update_cursor(int x, int y);
+void change_output_color(enum colors f_color, enum colors b_color);
+void color_line(unsigned char line_no, enum colors b_color);
+void color_column(unsigned char column_no, enum colors b_color);
+void color_rectangle(unsigned char x0, unsigned char x1, unsigned char y0, unsigned y1, enum colors b_color);
 
 //x=get_cursor_position()%80, y=get_cursor_position()/80
 extern unsigned short get_cursor_position();
